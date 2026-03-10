@@ -2,7 +2,8 @@
   "name": "Trening",
   "short_name": "Trening",
   "description": "Workout tracker for Deadlift, Benchpress and Squats",
-  "start_url": "/",
+  "start_url": "/trening/",
+  "scope": "/trening/"
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#0a0a0f",

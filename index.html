@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>Trening</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131c;
+    --surface2: #1c1c2a;
+    --border: #252535;
+    --border-focus: #3a3a55;
+    --lime: #c8ff00;
+    --cyan: #00e5ff;
+    --orange: #ff6b35;
+    --text: #eeeeff;
+    --muted: #55556a;
+    --danger: #ff4466;
+    --success: rgba(200,255,0,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    overscroll-behavior: none;
+  }
+
+  /* ── MAIN SCREEN ── */
+  #app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0 0 40px;
+  }
+
+  header {
+    padding: 52px 24px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .day-badge { display: flex; flex-direction: column; gap: 2px; }
+  .day-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  .day-count {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    line-height: 1;
+    color: var(--lime);
+  }
+  .day-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .app-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: var(--text);
+    letter-spacing: 0.12em;
+    padding-top: 8px;
+    opacity: 0.12;
+  }
+
+  .hero { padding: 24px 24px 0; }
+  .hero-line {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .hero-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    opacity: 0.45;
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 24px 24px; }
+
+  .exercises {
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .ex-btn {
+    width: 100%;
+    border: none;
+    border-radius: 18px;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+    -webkit-appearance: none;
+  }
+  .ex-btn:active { transform: scale(0.97); }
+
+  .ex-btn-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+  }
+
+  .ex-btn-left { display: flex; flex-direction: column; gap: 5px; text-align: left; }
+  .ex-btn-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 0.06em;
+    line-height: 1;
+  }
+  .ex-btn-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    opacity: 0.55;
+    line-height: 1.5;
+  }
+  .ex-btn-arrow { font-size: 22px; opacity: 0.4; }
+
+  .ex-btn.deadlift {
+    background: linear-gradient(135deg, #1a2600, #0f1a00);
+    border: 1px solid rgba(200,255,0,0.18);
+  }
+  .ex-btn.deadlift .ex-btn-name { color: var(--lime); }
+
+  .ex-btn.bench {
+    background: linear-gradient(135deg, #001a20, #000f15);
+    border: 1px solid rgba(0,229,255,0.18);
+  }
+  .ex-btn.bench .ex-btn-name { color: var(--cyan); }
+
+  .ex-btn.squats {
+    background: linear-gradient(135deg, #200f00, #150800);
+    border: 1px solid rgba(255,107,53,0.18);
+  }
+  .ex-btn.squats .ex-btn-name { color: var(--orange); }
+
+  .footer-hint {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 20px;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .modal-overlay.open {
+    display: flex;
+    animation: fadeIn 0.18s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 28px 28px 0 0;
+    width: 100%;
+    max-width: 480px;
+    padding: 10px 22px 52px;
+    animation: slideUp 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
+    max-height: 94vh;
+    overflow-y: auto;
+  }
+
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 10px auto 22px;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 0.06em;
+  }
+  .modal-title.deadlift { color: var(--lime); }
+  .modal-title.bench    { color: var(--cyan); }
+  .modal-title.squats   { color: var(--orange); }
+
+  .modal-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── 1RM SECTION ── */
+  .orm-section {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin: 16px 0;
+  }
+
+  .orm-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .orm-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+  }
+
+  .orm-prev {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .orm-prev span {
+    color: var(--lime);
+    font-size: 13px;
+  }
+
+  .orm-input-wrap { position: relative; }
+
+  .orm-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 52px 14px 18px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .orm-input:focus { border-color: var(--border-focus); }
+  .orm-unit {
+    position: absolute;
+    right: 16px; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  /* ── SETS ── */
+  .sets-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .sets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .set-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 14px;
+    transition: border-color 0.2s;
+  }
+
+  .set-row.logged {
+    border-color: rgba(200,255,0,0.22);
+    background: rgba(200,255,0,0.04);
+  }
+
+  .set-row-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    width: 46px;
+    flex-shrink: 0;
+  }
+
+  .set-row.logged .set-row-label { color: var(--text); }
+
+  .set-input-wrap { position: relative; flex: 1; }
+
+  .set-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 42px 10px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .set-input:focus { border-color: var(--border-focus); }
+  .set-input-unit {
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  .set-save-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    -webkit-appearance: none;
+    white-space: nowrap;
+  }
+  .set-save-btn:active { transform: scale(0.93); }
+  .set-save-btn.saved {
+    background: rgba(200,255,0,0.1);
+    border-color: rgba(200,255,0,0.3);
+    color: var(--lime);
+  }
+
+  .set-prev {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  .set-prev .prev-val { color: var(--text); opacity: 0.5; }
+
+  /* ── LOG ── */
+  .log-header {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .log-area {
+    background: #08080d;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    min-height: 52px;
+  }
+
+  .log-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .log-row:last-child { border-bottom: none; }
+  .log-set-name { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+  .log-set-kg   { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--lime); }
+  .log-empty    { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); text-align: center; padding: 8px 0; }
+
+  .close-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+  .close-btn:active { opacity: 0.6; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 32px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 11px 22px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--lime);
+    z-index: 200;
+    transition: transform 0.28s cubic-bezier(0.34,1.4,0.64,1), opacity 0.28s;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header>
+    <div class="day-badge">
+      <span class="day-label">Days trained</span>
+      <span class="day-count" id="dayCount">0</span>
+      <span class="day-sub">since first session</span>
+    </div>
+    <div class="app-title">TRENING</div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-line">Today</div>
+    <div class="hero-date" id="todayDate"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="exercises">
+    <button class="ex-btn deadlift" onclick="openModal('Deadlift')">
+      <div class="ex-btn-inner">
+        <div class="ex-btn-left">
+          <span class="ex-btn-name">Deadlift</span>
+          <span class="ex-btn-meta" id="meta-Deadlift">Tap to log sets</span>
+        </div>
+        <span class="ex-btn-arrow">›</span>
+      </div>
+    </button>
+
+    <button class="ex-btn bench" onclick="openModal('Benchpress')">
+      <div class="ex-btn-inner">
+        <div class="ex-btn-left">
+          <span class="ex-btn-name">Benchpress</span>
+          <span class="ex-btn-meta" id="meta-Benchpress">Tap to log sets</span>
+        </div>
+        <span class="ex-btn-arrow">›</span>
+      </div>
+    </button>
+
+    <button class="ex-btn squats" onclick="openModal('Squats')">
+      <div class="ex-btn-inner">
+        <div class="ex-btn-left">
+          <span class="ex-btn-name">Squats</span>
+          <span class="ex-btn-meta" id="meta-Squats">Tap to log sets</span>
+        </div>
+        <span class="ex-btn-arrow">›</span>
+      </div>
+    </button>
+  </div>
+
+  <div class="footer-hint">All data saved on your device</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-date" id="modalDate"></div>
+    </div>
+
+    <!-- 1RM -->
+    <div class="orm-section">
+      <div class="orm-label-row">
+        <span class="orm-label">1RM — One Rep Max</span>
+        <span class="orm-prev" id="ormPrev"></span>
+      </div>
+      <div class="orm-input-wrap">
+        <input class="orm-input" id="ormInput" type="number" inputmode="decimal"
+               placeholder="0" min="0" max="999" step="0.5"
+               onchange="saveOrm()">
+        <span class="orm-unit">kg</span>
+      </div>
+    </div>
+
+    <!-- SETS -->
+    <div class="sets-label">Sets</div>
+    <div class="sets-list" id="setsList"></div>
+
+    <!-- LOG -->
+    <div class="log-header">Today's log</div>
+    <div class="log-area" id="logArea"></div>
+
+    <button class="close-btn" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+function getLog() {
+  try { return JSON.parse(localStorage.getItem('treningLog') || '[]'); }
+  catch(e) { return []; }
+}
+function saveLog(log) { localStorage.setItem('treningLog', JSON.stringify(log)); }
+
+function getOrmData() {
+  try { return JSON.parse(localStorage.getItem('treningOrm') || '{}'); }
+  catch(e) { return {}; }
+}
+function saveOrmData(data) { localStorage.setItem('treningOrm', JSON.stringify(data)); }
+
+function today() {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+}
+
+function formatDate(d) {
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+// Get today's entry for a set (last saved)
+function getTodaySetKg(exercise, setNum) {
+  const log = getLog();
+  const entries = log.filter(e => e.date === today() && e.exercise === exercise && e.set === setNum);
+  return entries.length ? entries[entries.length-1].kg : null;
+}
+
+// Get the last logged kg for a set from a PREVIOUS session (not today)
+function getPrevSetKg(exercise, setNum) {
+  const log = getLog();
+  const t = today();
+  const entries = log.filter(e => e.date !== t && e.exercise === exercise && e.set === setNum);
+  return entries.length ? entries[entries.length-1].kg : null;
+}
+
+function getTodayEntries(exercise) {
+  return getLog().filter(e => e.date === today() && e.exercise === exercise);
+}
+
+function getUniqueDayCount() {
+  return new Set(getLog().map(e => e.date)).size;
+}
+
+// Get last 1RM for exercise (previous session)
+function getPrevOrm(exercise) {
+  const data = getOrmData();
+  const entries = (data[exercise] || []).filter(e => e.date !== today());
+  return entries.length ? entries[entries.length-1].kg : null;
+}
+
+// Get today's 1RM
+function getTodayOrm(exercise) {
+  const data = getOrmData();
+  const entries = (data[exercise] || []).filter(e => e.date === today());
+  return entries.length ? entries[entries.length-1].kg : null;
+}
+
+function saveOrmEntry(exercise, kg) {
+  const data = getOrmData();
+  if (!data[exercise]) data[exercise] = [];
+  // Remove existing today entry for this exercise
+  data[exercise] = data[exercise].filter(e => e.date !== today());
+  data[exercise].push({ date: today(), kg });
+  saveOrmData(data);
+}
+
+function addSetEntry(exercise, setNum, kg) {
+  const log = getLog();
+  // Remove existing today entry for this set
+  const filtered = log.filter(e => !(e.date === today() && e.exercise === exercise && e.set === setNum));
+  filtered.push({ date: today(), exercise, set: setNum, kg });
+  saveLog(filtered);
+}
+
+// ── STATE ──
+let currentExercise = null;
+
+// ── MAIN UI ──
+function refreshMain() {
+  document.getElementById('dayCount').textContent = getUniqueDayCount();
+  document.getElementById('todayDate').textContent = formatDate(new Date());
+
+  ['Deadlift','Benchpress','Squats'].forEach(ex => {
+    const entries = getTodayEntries(ex);
+    const meta = document.getElementById('meta-' + ex);
+    const orm = getTodayOrm(ex);
+    let lines = [];
+    if (orm) lines.push(`1RM: ${orm}kg`);
+    if (entries.length) {
+      const bySet = {};
+      entries.forEach(e => bySet[e.set] = e.kg);
+      const setStr = Object.keys(bySet).sort().map(s => `S${s}: ${bySet[s]}kg`).join('  ');
+      lines.push(setStr);
+    }
+    meta.textContent = lines.length ? lines.join('\n') : 'Tap to log sets';
+  });
+}
+
+// ── MODAL ──
+function openModal(exercise) {
+  currentExercise = exercise;
+  const title = document.getElementById('modalTitle');
+  title.textContent = exercise.toUpperCase();
+  title.className = 'modal-title ' + (exercise === 'Deadlift' ? 'deadlift' : exercise === 'Benchpress' ? 'bench' : 'squats');
+  document.getElementById('modalDate').textContent = formatDate(new Date());
+
+  // 1RM
+  const todayOrm = getTodayOrm(exercise);
+  const prevOrm  = getPrevOrm(exercise);
+  const ormInput = document.getElementById('ormInput');
+  ormInput.value = todayOrm !== null ? todayOrm : '';
+  const ormPrev = document.getElementById('ormPrev');
+  ormPrev.innerHTML = prevOrm !== null
+    ? `Last: <span>${prevOrm} kg</span>`
+    : '<span style="opacity:0.4">No previous</span>';
+
+  document.getElementById('modalOverlay').classList.add('open');
+  renderSets();
+  renderLog();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  currentExercise = null;
+  refreshMain();
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function saveOrm() {
+  if (!currentExercise) return;
+  const raw = document.getElementById('ormInput').value.replace(',','.');
+  const kg = parseFloat(raw);
+  if (!isNaN(kg) && kg > 0) {
+    saveOrmEntry(currentExercise, kg);
+    refreshMain();
+  }
+}
+
+function renderSets() {
+  const container = document.getElementById('setsList');
+  container.innerHTML = '';
+
+  for (let s = 1; s <= 4; s++) {
+    const todayKg = getTodaySetKg(currentExercise, s);
+    const prevKg  = getPrevSetKg(currentExercise, s);
+    const isLogged = todayKg !== null;
+
+    const row = document.createElement('div');
+    row.className = 'set-row' + (isLogged ? ' logged' : '');
+    row.id = 'setRow' + s;
+
+    const prevHtml = prevKg !== null
+      ? `<span class="prev-val">${prevKg}kg</span>`
+      : `<span style="opacity:0.3">—</span>`;
+
+    row.innerHTML = `
+      <span class="set-row-label">Set ${s}</span>
+      <div class="set-input-wrap">
+        <input class="set-input" id="setInput${s}" type="number" inputmode="decimal"
+               placeholder="${isLogged ? todayKg : '0'}" min="0" max="999" step="0.5"
+               value="${isLogged ? todayKg : ''}">
+        <span class="set-input-unit">kg</span>
+      </div>
+      <span class="set-prev" title="Last session">${prevHtml}</span>
+      <button class="set-save-btn ${isLogged ? 'saved' : ''}" id="setBtn${s}" onclick="logSet(${s})">
+        ${isLogged ? 'Saved ✓' : 'Save'}
+      </button>
+    `;
+    container.appendChild(row);
+  }
+}
+
+function logSet(setNum) {
+  if (!currentExercise) return;
+  const input = document.getElementById('setInput' + setNum);
+  const raw = input.value.replace(',','.');
+  const kg = parseFloat(raw);
+
+  if (!raw || isNaN(kg) || kg <= 0) {
+    input.style.borderColor = 'var(--danger)';
+    setTimeout(() => input.style.borderColor = '', 800);
+    showToast('Enter weight first');
+    return;
+  }
+
+  addSetEntry(currentExercise, setNum, kg);
+
+  // Update row visuals
+  const row = document.getElementById('setRow' + setNum);
+  row.classList.add('logged');
+  const btn = document.getElementById('setBtn' + setNum);
+  btn.textContent = 'Saved ✓';
+  btn.classList.add('saved');
+  input.placeholder = kg;
+
+  renderLog();
+  refreshMain();
+  showToast(`Set ${setNum} — ${kg} kg saved ✓`);
+}
+
+function renderLog() {
+  const logArea = document.getElementById('logArea');
+  const entries = getTodayEntries(currentExercise);
+  const orm = getTodayOrm(currentExercise);
+
+  if (!entries.length && !orm) {
+    logArea.innerHTML = '<div class="log-empty">Nothing logged yet today</div>';
+    return;
+  }
+
+  let html = '';
+  if (orm) {
+    html += `<div class="log-row">
+      <span class="log-set-name">1RM</span>
+      <span class="log-set-kg">${orm} kg</span>
+    </div>`;
+  }
+
+  const bySet = {};
+  entries.forEach(e => bySet[e.set] = e.kg);
+  Object.keys(bySet).sort().forEach(s => {
+    html += `<div class="log-row">
+      <span class="log-set-name">Set ${s}</span>
+      <span class="log-set-kg">${bySet[s]} kg</span>
+    </div>`;
+  });
+
+  logArea.innerHTML = html;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── PWA INSTALL ──
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+// ── INIT ──
+refreshMain();
+</script>
+</body>
+</html>
